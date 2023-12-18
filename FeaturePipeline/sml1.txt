@@ -1,0 +1,284 @@
+Serverless Machine Learning
+Jim Dowling
+jdowling@kth.se
+2022-11-04
+Enterprise AI Value Chain
+1 / 54
+Modern Enterprise Data and ML Infrastructure
+2 / 54
+Monolithic ML Pipeline
+3 / 54
+Problems with Monolithic ML Pipelines
+▶They are often not modular - their components are not modular and cannot be
+independently scaled or deployed on different hardware (e.g., CPUs for feature engi-
+neering, GPUs for model training).
+▶They are difficult to test - production software needs automated tests to ensure
+features and models are of high quality.
+▶They tightly couple the execution of feature engineering, model training, and infer-
+ence steps - running them in the same pipeline program at the same time.
+▶They do not promote reuse of features/models/code. The code for computing fea-
+tures (feature logic) cannot be easily disentangled from its pipeline jungle.
+4 / 54
+Modularity enables more Robust and Scalable Systems
+Modular water pipes in a Google Datacenter. Instead of one giant water pipe (our
+monolithic notebook), separate water pipes reduce the blast radius if one fails. Color
+coding makes it easier to debug problems in a damaged water pipe.
+5 / 54
+Pipelines as Modular Programs
+▶Modularity involves structuring your code such that its functionality is separated into
+independent classes and/or functions that can be more easily reused and tested.
+▶Modules should be placed in accessible classes or functions, keeping them small and
+easy to understand and document.
+▶Modules enable code to be more easily reused in different pipelines.
+▶Modules enable code to be more easily independently tested, enabling the easier and
+earlier discovery of bugs.
+6 / 54
+Supervised ML Pipeline Stages
+train (features ,labels )−>model
+model (features )−>predictions
+7 / 54
+ML Pipeline Stages in a Serverless Machine Learning System
+8 / 54
+ML Pipeline Stages - Data Sources
+9 / 54
+Connect to Data Sources and Read Raw Data
+▶Discover data sources, securely connect to heterogeneous data sources
+▶Manage dependencies such as connectors and drivers
+▶Manage connection information securely: network endpoint, database/table names,
+authentication credentials such as API keys or credentials (username/password)
+10 / 54
+Heterogeneous Data Sources
+11 / 54
+File Formats for different Data Sources
+12 / 54
+ML Pipeline Stages - Feature Pipelines
+13 / 54
+Feature Pipelines
+14 / 54
+Feature Pipelines
+▶A feature pipeline is a program that orchestrates the execution of feature engineering
+steps on input data to create feature values.
+Examples of feature engineering steps:
+▶Clean, validate, data
+▶Data de-duplication, pseudononymization, data wrangling
+▶Feature extraction, aggregations, dimensionality reduction, feature binning, feature
+crosses
+15 / 54
+Tabular Data
+16 / 54
+Tabular Data as Features, Labels, Entity (or Primary) Keys,
+Event Time
+17 / 54
+Tabular Data in Pandas
+18 / 54
+Exploratory Data Analysis in Pandas
+19 / 54
+Aggregations in Pandas
+20 / 54
+Rolling Windows in Pandas
+21 / 54
+Feature binning
+22 / 54
+Feature Crosses
+▶A feature cross is a synthetic feature formed by multiplying (crossing) two or more
+features. By multiplying features together, you encode nonlinearity in the feature
+space.
+▶For example, imagine we are looking for credit card fraud activity within a geographic
+region (e.g., a city district), how would we capture that as a feature?
+▶We could cross to a geographic area (binned latitude and binned longitude - a grid
+identifying a city district) with the level of credit card activity within that geographic
+area.
+23 / 54
+Embeddings as Features
+▶An embedding is a lower dimension representation of a sparse input that retains some
+of the semantics of the input.
+▶An embedding store (vector database) stores semantically similar inputs close to-
+gether in the embedding space. You can implement “similarity search” by finding
+embeddings close in embedding space. You can even apply arithmetic on embeddings
+to discover semantic relationships.
+24 / 54
+ML Pipeline Stages - Feature Store
+25 / 54
+Store Features
+There are two general ways people manage features and labels for both training and
+serving:
+▶(1) Compute features on-demand as part of the model training or batch inference
+pipeline.
+▶(2) Use a feature store to store the features so that they can be reused across
+different models for both training and inference. For online models that require
+features with either historical or contextual information , feature stores are typically
+used.
+26 / 54
+ML Pipeline Stages - Training Pipelines
+27 / 54
+Feature Types
+Reference: https://www.hopsworks.ai/post/feature-types-for-machine-learning
+28 / 54
+Feature Types Taxonomy
+29 / 54
+Model Training Pipelines
+30 / 54
+Model-Dependent Transformations
+Reference: https://developers.google.com/machine-learning/data-
+prep/transform/introduction
+31 / 54
+Transformations in Pandas
+32 / 54
+Different types of Transformations
+33 / 54
+Model Training with Train and Test Sets
+34 / 54
+Model Training with Train and Test Sets in Scikti-Learn
+35 / 54
+Model Training is an Iterative Process
+36 / 54
+Model-Centric Iteration to Improve Model Performance
+Possible steps to improve your model performance:
+▶Try out a different supervised ML learning algorithm (e.g., random forest, feedforward
+deep neural network, Gradient-boosted decision tree)
+▶Try out new combinations of hyperparameters (e.g., number of training epochs, the
+learning rate, number of layers in a deep neural network, adjust regularizations such
+as Dropout or BatchNorm)
+▶Evaluate your model on a validation set (keeping a separate holdout test set for final
+model performance evaluation)
+37 / 54
+Data-Centric Iteration to Improve Model Performance
+Steps to improve your model
+▶Add or remove features to or from your model (feature selection)
+▶Add more training data
+▶Remove poor quality training samples
+▶Improve the quality of existing training samples (e.g., using Cleanlab or Snorkel)
+▶Rank the importance of the training samples (Active Learning)
+38 / 54
+Train, Validation, and Test Sets
+▶Random splits of the training data when the data is not time-series data
+▶Time-series splits of the training data when the data is time-series data
+39 / 54
+Model Training is an Iterative Process
+40 / 54
+ML Pipeline Stages - Inference Pipelines
+41 / 54
+Batch Inference Pipeline
+42 / 54
+Online Inference Pipeline
+43 / 54
+Serverless ML with Python
+▶Write Feature, Training, and Inference Pipelines in Python
+▶Orchestrate the execution of Pipelines using Serverless Compute Platforms
+▶Store features and models in a serverless feature/model store
+▶Run a User Interface (UI), written in Python, on serverless infrastructure
+44 / 54
+Serverless Compute Platforms
+45 / 54
+Serverless Feature Stores and Model Registry/Serving
+Feature Stores
+▶Hopsworks
+Model Registry and Serving
+▶Hopsworks
+▶AWS Sagemaker
+▶Databricks
+▶Google Vertex
+46 / 54
+Serverless User Interfaces
+▶Hugging Faces Spaces
+▶Streamlit Cloud
+47 / 54
+Iris Flower Dataset
+https://github.com/ID2223KTH/id2223kth.github.io/tree/master/src/serverless-ml-
+intro
+▶4 input features: sepal length, sepal width, petal length, petal width
+▶label (target): Iris Flower Type (one of Setosa, Versicolor, Virginica)
+▶Only 150 samples in the dataset
+48 / 54
+Serverless Iris with Modal, Hopsworks, and Hugging Face
+49 / 54
+Iris Flowers: Feature Pipeline with Modal and Hopsworks
+import os
+import modal
+stub = modal.Stub()
+hopsworks_image = modal.Image.debian_slim().pip_install(["hopsworks"])
+@stub.function(image=hopsworks_image, schedule=modal.Period(days=1), \
+secret=modal.Secret.from_name("jim-hopsworks-ai"))
+def f():
+import hopsworks
+import pandas as pd
+project = hopsworks.login()
+fs = project.get_feature_store()
+iris_df = pd.read_csv("https://repo.hops.works/master/hopsworks-tutorials/data/iris.csv")
+iris_fg = fs.get_or_create_feature_group( name="iris_modal", version=1,
+primary_key=["sepal_length","sepal_width","petal_length","petal_width"],
+description="Iris flower dataset")
+iris_fg.insert(iris_df)
+if __name__ == "__main__":
+with stub.run():
+f()
+50 / 54
+Training Pipeline with Modal and Hopsworks
+@stub.function(image=hopsworks_image, schedule=modal.Period(days=1),\
+secret=modal.Secret.from_name("jim-hopsworks-ai"))
+def f():
+# lots of imports
+project = hopsworks.login()
+fs = project.get_feature_store()
+try:
+feature_view = fs.get_feature_view(name="iris_modal", version=1)
+except:
+iris_fg = fs.get_feature_group(name="iris_modal", version=1)
+query = iris_fg.select_all()
+feature_view = fs.create_feature_view(name="iris_modal",
+version=1,
+description="Read from Iris flower dataset",
+labels=["variety"],
+query=query)
+X_train, X_test, y_train, y_test = feature_view.train_test_split(0.2)
+model = KNeighborsClassifier(n_neighbors=2)
+model.fit(X_train, y_train.values.ravel())
+51 / 54
+Training Pipeline (ctd)
+y_pred = model.predict(X_test)
+metrics = classification_report(y_test, y_pred, output_dict=True)
+results = confusion_matrix(y_test, y_pred)
+df_cm = pd.DataFrame(results, [’True Setosa’, ’True Versicolor’, ’True Virginica’],
+[’Pred Setosa’, ’Pred Versicolor’, ’Pred Virginica’])
+cm = sns.heatmap(df_cm, annot=True)
+fig = cm.get_figure()
+joblib.dump(model, "iris_model/iris_model.pkl")
+fig.savefig("iris_model/confusion_matrix.png")
+input_schema = Schema(X_train)
+output_schema = Schema(y_train)
+model_schema = ModelSchema(input_schema, output_schema)
+mr = project.get_model_registry()
+iris_model = mr.python.create_model(
+name="iris_modal",
+metrics={"accuracy" : metrics[’accuracy’]},
+model_schema=model_schema,
+description="Iris Flower Predictor")
+iris_model.save("iris_model")
+52 / 54
+Interactive Inference Pipeline with Hugging Face/Hopsworks
+model = mr.get_model("iris_modal", version=1)
+model_dir = model.download()
+model = joblib.load(model_dir + "/iris_model.pkl")
+def iris(sepal_length, sepal_width, petal_length, petal_width):
+input_list = []
+input_list.append(sepal_length)
+input_list.append(sepal_width)
+input_list.append(petal_length)
+input_list.append(petal_width)
+res = model.predict(np.asarray(input_list).reshape(1, -1))
+flower_url = "https://raw.githubusercontent.com/.../assets/" + res[0] + ".png"
+return Image.open(requests.get(flower_url, stream=True).raw)
+demo = gr.Interface(
+fn=iris, title="Iris Flower Predictive Analytics", allow_flagging="never",
+description="Experiment with sepal/petal lengths/widths to predict which flower it is.",
+inputs=[ gr.inputs.Number(default=1.0, label="sepal length (cm)"),
+gr.inputs.Number(default=1.0, label="sepal width (cm)"),
+gr.inputs.Number(default=1.0, label="petal length (cm)"),
+gr.inputs.Number(default=1.0, label="petal width (cm)"),],
+outputs=gr.Image(type="pil"))
+demo.launch()
+53 / 54
+Questions?
+Acknowledgements
+Some of the images are used with permission from Hopsworks AB.
+54 / 54
