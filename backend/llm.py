@@ -30,9 +30,9 @@ class CustomLLM(LLM):
         **kwargs: Any,
     ) -> str:
         """Run the LLM on the given prompt."""
-        print("####################") 
-        print(prompt)
-        print("####################")
+        # print("####################") 
+        # print(prompt)
+        # print("####################")
 
         output = query({
             "inputs": prompt,
