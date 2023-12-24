@@ -1,3 +1,8 @@
+import os
+from dotenv import load_dotenv
+
+load_dotenv()
+
 from typing import Any, List, Mapping, Optional
 
 from langchain.callbacks.manager import CallbackManagerForLLMRun
@@ -7,7 +12,8 @@ import requests
 
 API_URL = "https://api-inference.huggingface.co/models/meta-llama/Llama-2-70b-chat-hf"
 # API_URL = "https://api-inference.huggingface.co/models/mistralai/Mixtral-8x7B-v0.1"
-headers = {"Authorization": "Bearer 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"}
+api_key = os.getenv('INFERENCE_API_KEY')
+headers = {"Authorization": f"Bearer {api_key}"}
 
 
 def query(payload):
