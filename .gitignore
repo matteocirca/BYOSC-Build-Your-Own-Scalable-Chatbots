@@ -1,6 +1,10 @@
 .vscode/
+backend/__pycache__/
 
 FeaturePipeline/*.pdf
+backend/*.pdf
+
+backend/faiss_index_*
 
 .DS_Store
 .env
