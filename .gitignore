@@ -2,6 +2,9 @@
 backend/__pycache__/
 
 FeaturePipeline/*.pdf
+FeaturePipeline/client_secrets.json
+FeaturePipeline/credentials.json
+FeaturePipeline/settings.yaml
 backend/*.pdf
 
 backend/faiss_index_*
