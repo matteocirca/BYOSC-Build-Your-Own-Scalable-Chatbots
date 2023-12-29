@@ -121,7 +121,7 @@ def run_rag_chatgpt(prompt_input, search, client):
         # load the FAISS vector database from the generated index path
         # retrieve the top 5 most similar documents
         docs_and_scores = db.similarity_search_with_score(search)[:5]
-        print("\n\ndocs_and_scores: ", docs_and_scores, "\n\n")
+        # print("\n\ndocs_and_scores: ", docs_and_scores, "\n\n")
 
         prompt = "Answer a question using References. Remember to mention the source(s) you use at the end of your answer. For example, if 'Source: 01_introduction.pdf, Page: 8', you can say 'slides 01_introduction.pdf, page 8'."
         user = f"Question: {prompt_input}\nReferences: "
@@ -134,7 +134,7 @@ def run_rag_chatgpt(prompt_input, search, client):
             {"role": "system", "content": prompt},
             {"role": "user", "content": user}
         ]
-        print("\n\nmessages_rag: ", messages, "\n\n")
+        # print("\n\nmessages_rag: ", messages, "\n\n")
         response = client.chat.completions.create(
             model="gpt-3.5-turbo",
             messages=messages
