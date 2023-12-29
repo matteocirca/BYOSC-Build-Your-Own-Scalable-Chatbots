@@ -8,6 +8,7 @@ FeaturePipeline/settings.yaml
 backend/*.pdf
 
 backend/faiss_index_*
+faiss_index_*
 
 .DS_Store
 .env

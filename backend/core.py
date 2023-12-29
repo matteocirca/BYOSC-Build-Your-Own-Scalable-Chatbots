@@ -19,7 +19,7 @@ import hopsworks
 
 
 # TODO: update db every 24h. Put VectorDB somewhere else than local?
-def get_faiss_vectordb(inference_api_key):
+def get_faiss_vectordb(inference_api_key, refresh=False):
     # initiate embeddings using HuggingFaceInferenceAPIEmbeddings
     embeddings = HuggingFaceInferenceAPIEmbeddings(
         api_key=inference_api_key, model_name="sentence-transformers/all-MiniLM-l6-v2"
@@ -28,6 +28,8 @@ def get_faiss_vectordb(inference_api_key):
     faiss_index_path = "faiss_index_embeddings"
 
     try:
+        if refresh:
+            raise Exception("Refresh")
         db = FAISS.load_local(faiss_index_path, embeddings=embeddings)
         return db
     except:
