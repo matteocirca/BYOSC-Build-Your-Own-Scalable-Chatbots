@@ -17,26 +17,18 @@ from openai import OpenAI
 # Add an option to choose between Llama and ChatGPT
 model_choice = st.sidebar.radio("Select Model:", ["Llama", "ChatGPT"])
 
-# create sidebar and ask for openai api key if not set in secrets
-secrets_file_path = os.path.join(".streamlit", "secrets.toml")
-if os.path.exists(secrets_file_path):
-    try:
-        if "OPENAI_API_KEY" in st.secrets:
-            os.environ["OPENAI_API_KEY"] = st.secrets["OPENAI_API_KEY"]
-        else:
-            print("OpenAI API Key not found in environment variables")
-    except FileNotFoundError:
-        print('Secrets file not found')
-else:
-    print('Secrets file not found')
-
-if not os.getenv('OPENAI_API_KEY', '').startswith("sk-") and model_choice == "ChatGPT":
-    os.environ["OPENAI_API_KEY"] = st.sidebar.text_input(
+if model_choice == "ChatGPT":
+    st.session_state.OPENAI_API_KEY = st.sidebar.text_input(
         "OpenAI API Key", type="password"
     )
 
 # check if openai api key is set
-if not os.getenv('OPENAI_API_KEY', '').startswith("sk-") and model_choice == "ChatGPT":
+if model_choice == "ChatGPT" and 'OPENAI_API_KEY' not in st.session_state:
+    st.warning("Please enter your OpenAI API key!", icon="⚠")
+    st.stop()
+
+# check if openai api key is set correctly
+if model_choice == "ChatGPT" and 'OPENAI_API_KEY' in st.session_state and not st.session_state.OPENAI_API_KEY.startswith("sk-"):
     st.warning("Please enter your OpenAI API key!", icon="⚠")
     st.stop()
 
@@ -152,8 +144,8 @@ def run_rag_chatgpt(prompt_input, search, client):
 
 # Function for generating LLaMA2 response. Refactored from https://github.com/a16z-infra/llama2-chatbot
 def generate_llama2_response(prompt_input):
-    # prompt = "Assist a student who is taking a university course. When you respond, you may respond on the knowledge you have or you may perform an Action, ONLY if necessary, i.e., the student asks for information about the course material. Action can be of one type only: (1) Search[content], which searches for similar content in the course material and returns the most relevant results if they exist. Put what you want to search for inside brackets after Search, like this: Search[What is the exam like?]. Be sure to put something that is inherent to the student's question."
-    prompt = "Assist a student who is taking a university course. If the student requests information about the course material that you're unsure of, you may perform a search action. Use the following format for a search action: Search[content], which searches for similar content in the course material. Replace content in brackets after Search with something inherent to the student's question. For example, Search[What is the exam like?] if the student asks about the exam. Only initiate a search when the student asks for information that is not within the scope of your knowledge."
+    prompt = "Assist a student who is taking a university course. When you respond, you may respond on the knowledge you have or you may perform an Action, ONLY if necessary, i.e., the student asks for information about the course material. Action can be of one type only: (1) Search[content], which searches for similar content in the course material and returns the most relevant results if they exist. Put what you want to search for inside brackets after Search, like this: Search[What is the exam like?]. Be sure to put something that is inherent to the student's question."
+    # prompt = "Assist a student who is taking a university course. If the student requests information about the course material that you're unsure of, you may perform a search action. Use the following format for a search action: Search[content], which searches for similar content in the course material. Replace content in brackets after Search with something inherent to the student's question. For example, Search[What is the exam like?] if the student asks about the exam. Only initiate a search when the student asks for information that is not within the scope of your knowledge."
     # examples = "\n<s>[INST] Hi, Im Bob! [/INST] Hi Bob, how can I help you today? [INST] I need information about the exam. Can you help me? [/INST] Sure, what do you want to know about the exam? [INST] How is the exam composed? [/INST] Search[How is the exam composed?]</s>"
     # prompt += examples
 
@@ -205,7 +197,7 @@ if st.session_state.messages[-1]["role"] != "assistant":
             if model_choice == "Llama":
                 response = generate_llama2_response(prompt)
             else:
-                client = OpenAI(api_key=os.environ["OPENAI_API_KEY"])
+                client = OpenAI(api_key=st.session_state.OPENAI_API_KEY)
                 response = generate_chatgpt_response(prompt, client)
             placeholder = st.empty()
             full_response = ''
