@@ -8,6 +8,8 @@ system to fine-tune chatbots on specific material of specific courses. Thanks to
 study buddies for the courses of a typical university student, able to answer doubts, generate questions
 and more!
 
+It's possible to test the chatbot at [this link](https://boysc-brioschi.streamlit.app/) 
+
 ##
 The implicit scope of the project (and of the entire course) is to build a scalable infrastructure that can host our MLops. For this reason, the traditional monolithic ML pipeline is split into three different processes: *Feature Pipeline*, *Training Pipeline*, *Inference Pipeline*.
 
