@@ -98,13 +98,15 @@ def chat_completion_chatgpt(prompt):
 def run_rag_llama2(prompt_input, search):
     with st.spinner("Retrieving results..."):
 
-        db = get_faiss_vectordb(inference_api_key=os.getenv('INFERENCE_API_KEY'))
+        # db = get_faiss_vectordb(inference_api_key=os.getenv('INFERENCE_API_KEY'))
+        db = get_faiss_vectordb()
 
         # load the FAISS vector database from the generated index path
         # retrieve the top 5 most similar documents
         docs_and_scores = db.similarity_search_with_score(search)[:5]
 
-        prompt = "<s>[INST] <<SYS>>\nAnswer a question using References. Remember to mention the source(s) you use. For example, if 'Source: 01_introduction.pdf, Page: 8', you can say 'According to page 8 in slides 01_introduction.pdf, ...'. If no relevant answer is found, you can say 'My apologies, I didn't find any answer to your question. Please ask another question or rephrase your question.'\n<</SYS>>\n\n"
+        prompt = "<s>[INST] <<SYS>>\nAnswer a question using References. Remember to mention the source(s) you use. For example, if 'Source: 01_introduction.pdf, Page: 8', you can say 'According to page 8 in slides 01_introduction.pdf, ...'.\n<</SYS>>\n\n"
+        # prompt = "<s>[INST] <<SYS>>\nAnswer a question using References. Remember to mention the source(s) you use. For example, if 'Source: 01_introduction.pdf, Page: 8', you can say 'According to page 8 in slides 01_introduction.pdf, ...'. If no relevant answer is found, you can say 'My apologies, I didn't find any answer to your question. Please ask another question or rephrase your question.'\n<</SYS>>\n\n"
         prompt += f"Question: {prompt_input} References: "
         for doc, score in docs_and_scores:
             prompt += f"{doc} "
@@ -116,7 +118,8 @@ def run_rag_llama2(prompt_input, search):
 def run_rag_chatgpt(prompt_input, search, client):
     with st.spinner("Retrieving results..."):
 
-        db = get_faiss_vectordb(inference_api_key=os.getenv('INFERENCE_API_KEY'))
+        # db = get_faiss_vectordb(inference_api_key=os.getenv('INFERENCE_API_KEY'))
+        db = get_faiss_vectordb()
 
         # load the FAISS vector database from the generated index path
         # retrieve the top 5 most similar documents
@@ -144,7 +147,7 @@ def run_rag_chatgpt(prompt_input, search, client):
 
 # Function for generating LLaMA2 response. Refactored from https://github.com/a16z-infra/llama2-chatbot
 def generate_llama2_response(prompt_input):
-    prompt = "Assist a student who is taking a university course. When you respond, you may respond on the knowledge you have or you may perform an Action, ONLY if necessary, i.e., the student asks for information about the course material. Action can be of one type only: (1) Search[content], which searches for similar content in the course material and returns the most relevant results if they exist. Put what you want to search for inside brackets after Search, like this: Search[What is the exam like?]. Be sure to put something that is inherent to the student's question."
+    prompt = "You are assisting a university student who is enrolled in a course. Your goal is to help them with their queries or perform a search if necessary. Your responses should execute a search action if the student requests information related to the course material. When responding, adhere to the following guidelines: 1. Search Action: If the student asks for specific details or information that requires a search, utilize the following format: Search[Your Search Query]. Replace ‘Your Search Query’ with the actual information the student is seeking. Here's an example of how to use the Search Action: If the student asks, ‘What is the exam format?’ You should respond with: Search[Exam Format]."
     # prompt = "Assist a student who is taking a university course. If the student requests information about the course material that you're unsure of, you may perform a search action. Use the following format for a search action: Search[content], which searches for similar content in the course material. Replace content in brackets after Search with something inherent to the student's question. For example, Search[What is the exam like?] if the student asks about the exam. Only initiate a search when the student asks for information that is not within the scope of your knowledge."
     # examples = "\n<s>[INST] Hi, Im Bob! [/INST] Hi Bob, how can I help you today? [INST] I need information about the exam. Can you help me? [/INST] Sure, what do you want to know about the exam? [INST] How is the exam composed? [/INST] Search[How is the exam composed?]</s>"
     # prompt += examples
@@ -209,24 +212,25 @@ if st.session_state.messages[-1]["role"] != "assistant":
     st.session_state.messages.append(message)
     # print("\n\nsession_state.messages: ", st.session_state.messages, "\n\n")
 
-# Refresh FAISS vectorstore every day at 03:00
-def refresh_vectorstore():
-    # delete the FAISS vector database
-    get_faiss_vectordb(inference_api_key=os.getenv('INFERENCE_API_KEY'), refresh=True)
+# # Refresh FAISS vectorstore every day at 03:00
+# def refresh_vectorstore():
+#     # delete the FAISS vector database
+#     # get_faiss_vectordb(inference_api_key=os.getenv('INFERENCE_API_KEY'), refresh=True)
+#     get_faiss_vectordb(refresh=True)
 
-from apscheduler.schedulers.background import BackgroundScheduler
-from apscheduler.triggers.cron import CronTrigger
+# from apscheduler.schedulers.background import BackgroundScheduler
+# from apscheduler.triggers.cron import CronTrigger
 
-# Schedule fetch courses job to run every day at 03:00
-scheduler = BackgroundScheduler(daemon=True)
-trigger = CronTrigger(
-    year="*", month="*", day="*", hour="3", minute="0", second="0"
-)
+# # Schedule fetch courses job to run every day at 03:00
+# scheduler = BackgroundScheduler(daemon=True)
+# trigger = CronTrigger(
+#     year="*", month="*", day="*", hour="3", minute="0", second="0"
+# )
 
-scheduler.add_job(
-    refresh_vectorstore,
-    trigger=trigger,
-    name="refresh_vectorstore",
-)
+# scheduler.add_job(
+#     refresh_vectorstore,
+#     trigger=trigger,
+#     name="refresh_vectorstore",
+# )
 
-scheduler.start()
+# scheduler.start()

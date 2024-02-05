@@ -4,6 +4,8 @@ from dotenv import load_dotenv
 load_dotenv()
 
 from langchain.embeddings import HuggingFaceInferenceAPIEmbeddings
+from langchain_community.embeddings.huggingface import HuggingFaceEmbeddings
+
 from langchain.document_loaders import PyPDFLoader, TextLoader, UnstructuredMarkdownLoader
 from langchain.vectorstores import FAISS
 from langchain.text_splitter import RecursiveCharacterTextSplitter
@@ -19,11 +21,13 @@ import hopsworks
 
 
 # TODO: update db every 24h. Put VectorDB somewhere else than local?
-def get_faiss_vectordb(inference_api_key, refresh=False):
+# def get_faiss_vectordb(inference_api_key, refresh=False):
+def get_faiss_vectordb(refresh=False):
     # initiate embeddings using HuggingFaceInferenceAPIEmbeddings
-    embeddings = HuggingFaceInferenceAPIEmbeddings(
-        api_key=inference_api_key, model_name="sentence-transformers/all-MiniLM-l6-v2"
-    )
+    # embeddings = HuggingFaceInferenceAPIEmbeddings(
+    #     api_key=inference_api_key, model_name="sentence-transformers/all-MiniLM-l6-v2"
+    # )
+    embeddings = HuggingFaceEmbeddings(model_name="all-MiniLM-L6-v2")
     # create a unique FAISS index path based on the input file's name
     faiss_index_path = "faiss_index_embeddings"
 

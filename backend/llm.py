@@ -10,7 +10,9 @@ from langchain_core.language_models.llms import LLM
 
 import requests
 
-API_URL = "https://api-inference.huggingface.co/models/meta-llama/Llama-2-70b-chat-hf"
+API_URL = "https://q3dlpjk23sp79xcu.us-east-1.aws.endpoints.huggingface.cloud"
+# API_URL = "https://api-inference.huggingface.co/models/meta-llama/Llama-2-7b-chat-hf"
+# API_URL = "https://api-inference.huggingface.co/models/meta-llama/Llama-2-70b-chat-hf"
 # API_URL = "https://api-inference.huggingface.co/models/mistralai/Mixtral-8x7B-Instruct-v0.1"
 api_key = os.getenv('INFERENCE_API_KEY')
 headers = {"Authorization": f"Bearer {api_key}"}
