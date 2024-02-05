@@ -10,8 +10,12 @@ and more!
 
 It's possible to test the chatbot at [this link](https://boysc-brioschi.streamlit.app/) 
 
+![Chat](images/chat.png)
+
 ##
 The implicit scope of the project (and of the entire course) is to build a scalable infrastructure that can host our MLops. For this reason, the traditional monolithic ML pipeline is split into three different processes: *Feature Pipeline*, *Training Pipeline*, *Inference Pipeline*.
+
+![Architecture](images/architecture.png)
 
 ### Feature Pipeline
 
