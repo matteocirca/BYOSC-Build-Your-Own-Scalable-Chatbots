@@ -8,7 +8,7 @@ system to fine-tune chatbots on specific material of specific courses. Thanks to
 study buddies for the courses of a typical university student, able to answer doubts, generate questions
 and more!
 
-It's possible to test the chatbot at [this link](https://boysc-brioschi.streamlit.app/) 
+It's possible to test the chatbot at [this link](https://boysc-brioschi.streamlit.app/).
 
 ![Chat](images/chat.png)
 
