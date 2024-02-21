@@ -10,16 +10,20 @@ from langchain_core.language_models.llms import LLM
 
 import requests
 
-API_URL = "https://q3dlpjk23sp79xcu.us-east-1.aws.endpoints.huggingface.cloud"
+API_URL = "https://s1bc92t3401pk41g.us-east-1.aws.endpoints.huggingface.cloud"
 # API_URL = "https://api-inference.huggingface.co/models/meta-llama/Llama-2-7b-chat-hf"
-# API_URL = "https://api-inference.huggingface.co/models/meta-llama/Llama-2-70b-chat-hf"
+_API_URL = "https://api-inference.huggingface.co/models/meta-llama/Llama-2-70b-chat-hf"
 # API_URL = "https://api-inference.huggingface.co/models/mistralai/Mixtral-8x7B-Instruct-v0.1"
 api_key = os.getenv('INFERENCE_API_KEY')
-headers = {"Authorization": f"Bearer {api_key}"}
+headers = {
+    "Accept" : "application/json", 
+    "Authorization": f"Bearer {api_key}",
+    "Content-Type": "application/json" 
+}
 
 
-def query(payload):
-	response = requests.post(API_URL, headers=headers, json=payload)
+def query(payload, other_model=False):
+	response = requests.post(API_URL, headers=headers, json=payload) if not other_model else requests.post(_API_URL, headers=headers, json=payload)
 	return response.json()
 
 class CustomLLM(LLM):
@@ -33,6 +37,7 @@ class CustomLLM(LLM):
     def _call(
         self,
         prompt: str,
+        other_model: bool = False,
         stop: Optional[List[str]] = None,
         run_manager: Optional[CallbackManagerForLLMRun] = None,
         **kwargs: Any,
@@ -46,7 +51,7 @@ class CustomLLM(LLM):
             "inputs": prompt,
             "parameters": {"max_new_tokens": self.max_new_tokens, "max_time": self.max_time, "return_full_text": False},
             "options": {"wait_for_model": True, "use_cache": False}
-            })
+            }, other_model=other_model)
 
         output = output[0]["generated_text"]
 

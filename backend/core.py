@@ -41,7 +41,7 @@ def get_faiss_vectordb(refresh=False):
         project = hopsworks.login()
         fs = project.get_feature_store()
 
-        instruction_set = fs.get_feature_group(name="embeddings", version=1)
+        instruction_set = fs.get_feature_group(name="embeddings", version=3)
         df = instruction_set.read() # df is source, page, content
 
         # transform df in list of text
@@ -68,14 +68,14 @@ def get_faiss_vectordb(refresh=False):
         
         return vectordb
 
-def run_llm(query, stop=None):
+def run_llm(query, other_model=False, stop=None):
     # create an instance of the ChatOpenAI with specified settings
     # openai_llm = ChatOpenAI(temperature=0, verbose=True)
 
     # custom llm
     llm = CustomLLM(max_new_tokens=250, max_time=120.0)
 
-    answer = llm._call(query, stop=stop)
+    answer = llm._call(query, other_model=other_model, stop=stop)
     
     return answer
 
