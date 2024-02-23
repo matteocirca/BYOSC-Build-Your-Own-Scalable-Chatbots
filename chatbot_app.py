@@ -15,7 +15,7 @@ from openai import OpenAI
 
 # ChatGPT integration
 # Add an option to choose between Llama and ChatGPT
-model_choice = st.sidebar.radio("Select Model:", ["Llama-7b", "ChatGPT"])
+model_choice = st.sidebar.radio("Select Model:", ["Llama", "ChatGPT"])
 
 if model_choice == "ChatGPT":
     st.session_state.OPENAI_API_KEY = st.sidebar.text_input(
@@ -62,14 +62,10 @@ def chat_completion_llama2(prompt):
     string_dialogue = "<s>[INST] <<SYS>>\n"
     string_dialogue += prompt
     string_dialogue += "\n<</SYS>>\n\n"
-    # string_dialogue += "Hi! I'm a student of the Scalable Machine Learning and Deep Learning course. Help me out replying my doubts and questions. You do not respond as 'User' or pretend to be 'User'. You only respond once as 'Assistant'. When replying, you may perform an Action to retrieve specific information of the course. Action can be of one type: (1) Search['content'], which searches for similar content in the course material. Put what you want to search for inside brackets instead of 'content'. For example, if I ask you for the professor name perform an Action of the type Search[professor name]. BE SURE your answer is RELEVANT to the questions. [/INST] I'm your course buddy. How may I assist you today? </s><s>[INST] "
-    # string_dialogue += "Hi! I'm a student of the Scalable Machine Learning and Deep Learning course. Help me out replying my doubts and questions. When you respond, you may respond on the knowledge you have or you may perform an Action, ONLY if necessary, i.e., I ask for information about the course material. Action can be of one type only: (1) Search[content], which searches for similar content in the course material and returns the most relevant results if they exist. Put what you want to search for inside brackets after Search. Be sure to put something that is inherent to my question. " # llama-70b
-    # string_dialogue += "Hi! I'm a student of the Scalable Machine Learning and Deep Learning course. Reply to my doubts and questions. Perform an Action whenever you're unsure of the answer, if necessary, i.e., I ask for specific information about the course. Action can be of one type only: (1) Search['content'], which searches for similar 'content' in the course material. Put what you want to search for inside brackets instead of 'content'. Be sure to put something that is inherent to my question. BE SURE your answer is RELEVANT to the questions. [/INST] Clear! I will strictly follow your guidelines. </s><s>[INST] Let's test the Action. What if I ask you the professor name? [/INST] That's something specific of the course, I should perform an action of the type Search[professor name]. </s><s>[INST] Correct! Let's start the conversation now. [/INST] I'm your course buddy. How may I assist you today? </s><s>[INST] "
     
-    # string_dialogue += "Hi! I'm a student of the Scalable Machine Learning and Deep Learning course. [/INST] Clear! I will strictly follow your guidelines. Let's start the conversation now. I'm your course buddy. How may I assist you today? </s><s>[INST] "
     string_dialogue += "Hi! I'm a student of the Scalable Machine Learning and Deep Learning course. [/INST] I'm your course buddy. How may I assist you today? </s><s>[INST] "
-    # string_dialogue += "Hi! I'm a student of the Scalable Machine Learning and Deep Learning course. Reply to my doubts and questions. Whenever you're unsure of the answer or if the question is too specific, just respond with Search['query'], replacing 'query' with what you'd like to search, and magically an external engine will provide you with the relevant information. Use it, but ONLY if necessary, i.e., I ask for specific information about the course. In general, BE SURE your answer is RELEVANT to the question. [/INST] Clear! I'll adhere to your guidelines. </s><s>[INST] Let's test it. What if I ask you the professor name? [/INST] That's something specific of the course, I should search for it. So the answer is: Search[professor name]. </s><s>[INST] Correct! Let's start the conversation now. [/INST] I'm your course buddy. How may I assist you today? </s><s>[INST] "
-
+    
+    # Prompting in a single [INST] and [/INST] block
     # # skip the first message since it is the system prompt
     # for dict_message, i in zip(st.session_state.messages[1:], range(len(st.session_state.messages[1:]))):
     #     if dict_message["role"] == "user":
@@ -78,7 +74,8 @@ def chat_completion_llama2(prompt):
     #         string_dialogue += "\nAssistant: "
     #     string_dialogue += dict_message["content"].replace("\n", " ")
     # string_dialogue += "\nAssistant: [/INST] "
-    # Prompting with break down of the dialogue
+
+    # Prompting with concatenated [INST] and [/INST] blocks
     # skip the first message since it is the system prompt
     for dict_message, i in zip(st.session_state.messages[1:], range(len(st.session_state.messages[1:]))):
         if dict_message["role"] == "user":
@@ -88,7 +85,7 @@ def chat_completion_llama2(prompt):
             # string_dialogue += dict_message["content"] + " "
             string_dialogue += dict_message["content"] + " </s><s>"
 
-    # print("\n\nstring_dialogue: ", string_dialogue, "\n\n")
+    # print("\n\nstring_dialogue:\n", string_dialogue, "\n\n")
     # print("#" * 100)
 
     return string_dialogue
@@ -167,7 +164,10 @@ def run_rag_chatgpt(prompt_input, search, client):
 
 # Function for generating LLaMA2 response. Refactored from https://github.com/a16z-infra/llama2-chatbot
 def generate_llama2_response(prompt_input):
-    prompt = "You are a helpful Assistant for the user's study session. Respond based on the following conversation history."
+    prompt = "Assist a student who is taking a university course. When you respond, you may respond on the knowledge you have or you may perform an Action, ONLY if necessary, i.e., the student asks for information about the course material. Action can be of one type only: (1) Search[content], which searches for similar content in the course material and returns the most relevant results if they exist. Put what you want to search for inside brackets after Search, like this: Search[What is the exam like?]. Be sure to put something that is inherent to the student's question."
+    
+    # PROMPT TRIALS
+    # prompt = "You are a helpful Assistant for the user's study session. Respond based on the following conversation history."
     # prompt = "Assist a student who is taking a university course. When you respond, you may provide guidance based on the knowledge you have. However, if the student explicitly requests information about the course material, you may perform an action by searching for similar content in the course material using the format Search[] and putting in brackets what you need to search for. Ensure that the action is ONLY taken when the student's query necessitates it."
     # prompt = "You are a helpful Assistant helping a student with his/her university course. You may perform an Action if the student asks for information about the course. Action can be of one type: (1) Search[content], which searches for similar content in the course material. Put what you want to search for inside brackets. BE SURE your answer is RELEVANT to the student's question."
     
@@ -178,8 +178,6 @@ def generate_llama2_response(prompt_input):
     # examples = " Examples\nExample where to use Search:\nUser: I need information about the exam. Can you help me?\nAssistant: Sure, what do you want to know about the exam?\nUser: How is the exam composed?\nAssistant: Search[exam format]\nExample where NOT to use Search\nUser: Hii, I'm Bob!\nAssistant: Hi Bob, how can I help you today?\nUser: Can you give me tips on how to handle stress?\nAssistant: Stress is a common issue among students. Here are some tips to handle stress: 1. Take breaks 2. Exercise 3. Get enough sleep 4. Eat well 5. Talk to someone you trust. If you need more information, let me know."
     # prompt += examples
 
-    # prompt = "Assist a student who is taking a university course. When you respond, you may respond on the knowledge you have or you may perform an Action, ONLY if necessary, i.e., the student asks for information about the course material. Action can be of one type only: (1) Search[content], which searches for similar content in the course material and returns the most relevant results if they exist. Put what you want to search for inside brackets after Search, like this: Search[What is the exam like?]. Be sure to put something that is inherent to the student's question."
-    
     # prompt = "Assist a student who is taking a university course. If the student requests information about the course material that you're unsure of, you may perform a search action. Use the following format for a search action: Search[content], which searches for similar content in the course material. Replace content in brackets after Search with something inherent to the student's question. For example, Search[What is the exam like?] if the student asks about the exam. Only initiate a search when the student asks for information that is not within the scope of your knowledge."
     # examples = "\n<s>[INST] Hi, Im Bob! [/INST] Hi Bob, how can I help you today? [INST] I need information about the exam. Can you help me? [/INST] Sure, what do you want to know about the exam? [INST] How is the exam composed? [/INST] Search[How is the exam composed?]</s>"
     # prompt += examples
@@ -230,7 +228,7 @@ if prompt := st.chat_input(disabled=False):
 if st.session_state.messages[-1]["role"] != "assistant":
     with st.chat_message("assistant"):
         with st.spinner("Thinking..."):
-            if model_choice == "Llama-7b":
+            if model_choice == "Llama":
                 response = generate_llama2_response(prompt)
             else:
                 client = OpenAI(api_key=st.session_state.OPENAI_API_KEY)
