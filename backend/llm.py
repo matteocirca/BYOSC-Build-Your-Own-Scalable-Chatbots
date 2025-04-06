@@ -10,11 +10,12 @@ from langchain_core.language_models.llms import LLM
 
 import requests
 
-API_URL = "https://router.huggingface.co/hf-inference/models/meta-llama/Llama-3.3-70B-Instruct/v1/chat/completions"
-_API_URL = "https://router.huggingface.co/hf-inference/models/meta-llama/Llama-3.3-70B-Instruct/v1/chat/completions" # secondary model for RAG
+API_URL = "https://router.huggingface.co/novita/v3/openai/chat/completions"
+_API_URL = "https://router.huggingface.co/novita/v3/openai/chat/completions" # secondary model for RAG
 # OTHER MODELS:
 # - https://api-inference.huggingface.co/models/meta-llama/Llama-2-70b-chat-hf
 # - https://api-inference.huggingface.co/models/mistralai/Mixtral-8x7B-Instruct-v0.1
+# - https://router.huggingface.co/hf-inference/models/meta-llama/Llama-3.3-70B-Instruct/v1/chat/completions
 api_key = os.getenv('INFERENCE_API_KEY')
 headers = {
     "Accept" : "application/json", 
@@ -91,7 +92,7 @@ class CustomLLM(LLM):
         response = query({
             "messages": messages,
             "max_tokens": self.max_new_tokens,
-            "model": "meta-llama/Llama-3.3-70B-Instruct"
+            "model": "meta-llama/llama-4-maverick-17b-128e-instruct-fp8"
         }, other_model=other_model)
 
         output = response["choices"][0]["message"]["content"]
