@@ -10,21 +10,39 @@ from langchain_core.language_models.llms import LLM
 
 import requests
 
-# API_URL = "https://s1bc92t3401pk41g.us-east-1.aws.endpoints.huggingface.cloud" # primary model for chat
-API_URL = "https://api-inference.huggingface.co/models/meta-llama/Llama-2-70b-chat-hf"
-_API_URL = "https://api-inference.huggingface.co/models/meta-llama/Llama-2-70b-chat-hf" # secondary model for RAG
-# API_URL = "https://api-inference.huggingface.co/models/mistralai/Mixtral-8x7B-Instruct-v0.1"
+API_URL = "https://router.huggingface.co/hf-inference/models/meta-llama/Llama-3.3-70B-Instruct/v1/chat/completions"
+_API_URL = "https://router.huggingface.co/hf-inference/models/meta-llama/Llama-3.3-70B-Instruct/v1/chat/completions" # secondary model for RAG
+# OTHER MODELS:
+# - https://api-inference.huggingface.co/models/meta-llama/Llama-2-70b-chat-hf
+# - https://api-inference.huggingface.co/models/mistralai/Mixtral-8x7B-Instruct-v0.1
 api_key = os.getenv('INFERENCE_API_KEY')
 headers = {
     "Accept" : "application/json", 
     "Authorization": f"Bearer {api_key}",
-    "Content-Type": "application/json" 
+    "Content-Type": "application/json",
+    "x-use-cache": "false",
+    "x-wait-for-model": "true",
 }
 
 
 def query(payload, other_model=False):
-	response = requests.post(API_URL, headers=headers, json=payload) if not other_model else requests.post(_API_URL, headers=headers, json=payload)
-	return response.json()
+    url = _API_URL if other_model else API_URL
+    try:
+        response = requests.post(url, headers=headers, json=payload)
+        response.raise_for_status()
+        
+        try:
+            return response.json()
+        except ValueError as e:
+            print(f"Error parsing JSON response: {e}")
+            print(f"Response content: {response.content[:200]}...")
+            # return a fallback
+            return [{"generated_text": "Sorry, I encountered an error processing your request."}]
+    
+    except requests.exceptions.RequestException as e:
+        print(f"Request failed: {e}")
+        # return a fallback
+        return [{"generated_text": "Sorry, I encountered an error processing your request."}]
 
 class CustomLLM(LLM):
     max_new_tokens: int
@@ -54,6 +72,29 @@ class CustomLLM(LLM):
             }, other_model=other_model)
 
         output = output[0]["generated_text"]
+
+        if stop is not None:
+            for stop_token in stop:
+                output = output.split(stop_token)[0]
+            
+        return output
+    
+    def call_chat_completion(
+        self,
+        messages: List[dict],
+        other_model: bool = False,
+        stop: Optional[List[str]] = None,
+        run_manager: Optional[CallbackManagerForLLMRun] = None,
+    ) -> str:
+        """Run the LLM using chat completion format."""
+
+        response = query({
+            "messages": messages,
+            "max_tokens": self.max_new_tokens,
+            "model": "meta-llama/Llama-3.3-70B-Instruct"
+        }, other_model=other_model)
+
+        output = response["choices"][0]["message"]["content"]
 
         if stop is not None:
             for stop_token in stop:

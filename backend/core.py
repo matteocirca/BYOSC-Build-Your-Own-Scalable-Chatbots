@@ -68,14 +68,27 @@ def get_faiss_vectordb(refresh=False):
         
         return vectordb
 
-def run_llm(query, other_model=False, stop=None):
+def run_llm(query, other_model=False, stop=None, format_type="completion"):
     # create an instance of the ChatOpenAI with specified settings
     # openai_llm = ChatOpenAI(temperature=0, verbose=True)
 
     # custom llm
-    llm = CustomLLM(max_new_tokens=250, max_time=120.0)
+    llm = CustomLLM(max_new_tokens=500, max_time=120.0)
 
-    answer = llm._call(query, other_model=other_model, stop=stop)
+    if format_type == "chat":
+        # For chat completion format with messages
+        answer = llm.call_chat_completion(
+            messages=query,
+            other_model=other_model,
+            stop=stop
+        )
+    else:
+        # For traditional string prompt format
+        answer = llm._call(
+            query, 
+            other_model=other_model,
+            stop=stop
+        )
     
     return answer
 

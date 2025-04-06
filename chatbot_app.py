@@ -111,7 +111,7 @@ def chat_completion_chatgpt(prompt):
     return messages
 
 # Function for generating RAG response
-def run_rag_llama2(prompt_input, search):
+def run_rag_llama2(prompt_input, search, use_chat_format=False):
     with st.spinner("Retrieving results..."):
 
         # db = get_faiss_vectordb(inference_api_key=os.getenv('INFERENCE_API_KEY'))
@@ -121,16 +121,26 @@ def run_rag_llama2(prompt_input, search):
         # retrieve the top 5 most similar documents
         docs_and_scores = db.similarity_search_with_score(search)[:5]
 
-        prompt = "<s>[INST] <<SYS>>\nAnswer a question using References. Remember to mention the source(s) you use. For example, if 'Source: 01_introduction.pdf, Page: 8', you can say 'According to page 8 in slides 01_introduction.pdf, ...'. Be sure to properly format the output.\n<</SYS>>\n\n"
-        # prompt = "<s>[INST] <<SYS>>\nAnswer a question using References. Remember to mention the source(s) you use. For example, if 'Source: 01_introduction.pdf, Page: 8', you can say 'According to page 8 in slides 01_introduction.pdf, ...'. If no relevant answer is found, you can say 'My apologies, I didn't find any answer to your question. Please ask another question or rephrase your question.'\n<</SYS>>\n\n"
-        prompt += f"Question: {prompt_input} References: "
-        for doc, score in docs_and_scores:
-            prompt += f"{doc} "
-        prompt += " Answer: "
-        prompt += "[/INST] "
+        if use_chat_format:
+            system_prompt = "Answer a question using References. Remember to mention the source(s) you use. For example, if 'Source: 01_introduction.pdf, Page: 8', you can say 'According to page 8 in slides 01_introduction.pdf, ...'. Be sure to properly format the output."
+            references = " ".join([f"{doc} " for doc, score in docs_and_scores])
+            messages = [
+                {"role": "system", "content": system_prompt},
+                {"role": "user", "content": f"Question: {prompt_input}\nReferences: {references}\nAnswer:"}
+            ]
+            
+            return run_llm(query=messages, other_model=True, stop=["</s>"], format_type="chat").strip()
+        else:
+            prompt = "<s>[INST] <<SYS>>\nAnswer a question using References. Remember to mention the source(s) you use. For example, if 'Source: 01_introduction.pdf, Page: 8', you can say 'According to page 8 in slides 01_introduction.pdf, ...'. Be sure to properly format the output.\n<</SYS>>\n\n"
+            # prompt = "<s>[INST] <<SYS>>\nAnswer a question using References. Remember to mention the source(s) you use. For example, if 'Source: 01_introduction.pdf, Page: 8', you can say 'According to page 8 in slides 01_introduction.pdf, ...'. If no relevant answer is found, you can say 'My apologies, I didn't find any answer to your question. Please ask another question or rephrase your question.'\n<</SYS>>\n\n"
+            prompt += f"Question: {prompt_input} References: "
+            for doc, score in docs_and_scores:
+                prompt += f"{doc} "
+            prompt += " Answer: "
+            prompt += "[/INST] "
 
-        # TODO: Why LLAMA2 cut answers? Fix this
-        return run_llm(prompt, other_model=True, stop=["</s>"]).strip()
+            # TODO: Why LLAMA2 cut answers? Fix this
+            return run_llm(prompt, other_model=True, stop=["</s>"]).strip()
 
 def run_rag_chatgpt(prompt_input, search, client):
     with st.spinner("Retrieving results..."):
@@ -163,7 +173,7 @@ def run_rag_chatgpt(prompt_input, search, client):
         return response
 
 # Function for generating LLaMA2 response. Refactored from https://github.com/a16z-infra/llama2-chatbot
-def generate_llama2_response(prompt_input):
+def generate_llama2_response(prompt_input, use_chat_format=False):
     prompt = "Assist a student who is taking a university course. When you respond, you may respond on the knowledge you have or you may perform an Action, ONLY if necessary, i.e., the student asks for information about the course material. Action can be of one type only: (1) Search[content], which searches for similar content in the course material and returns the most relevant results if they exist. Put what you want to search for inside brackets after Search, like this: Search[What is the exam like?]. Be sure to put something that is inherent to the student's question."
     
     # PROMPT TRIALS
@@ -182,16 +192,22 @@ def generate_llama2_response(prompt_input):
     # examples = "\n<s>[INST] Hi, Im Bob! [/INST] Hi Bob, how can I help you today? [INST] I need information about the exam. Can you help me? [/INST] Sure, what do you want to know about the exam? [INST] How is the exam composed? [/INST] Search[How is the exam composed?]</s>"
     # prompt += examples
 
-    string_dialogue = chat_completion_llama2(prompt)
-    
-    query = f"{string_dialogue}"
-    output = run_llm(query=query, stop=["</s>"]).strip()
+    if use_chat_format:
+        messages = [
+            {"role": "system", "content": prompt}
+        ]
+        for message in st.session_state.messages[1:]:
+            messages.append({"role": message["role"], "content": message["content"]})
+        output = run_llm(query=messages, stop=["</s>"], format_type="chat").strip()
+    else:
+        string_dialogue = chat_completion_llama2(prompt)
+        output = run_llm(query=string_dialogue, stop=["</s>"]).strip()
 
     # extract the Text if the Search[Text] action is performed
     if "Search[" in output:
         search = output.split("Search[")[1].split("]")[0]
         # print("\n\nsearch: ", search, "\n\n")
-        results = run_rag_llama2(prompt_input, search)
+        results = run_rag_llama2(prompt_input, search, use_chat_format)
         output = "Search[" + search + "]\n\n" + results
 
     return output
@@ -229,7 +245,8 @@ if st.session_state.messages[-1]["role"] != "assistant":
     with st.chat_message("assistant"):
         with st.spinner("Thinking..."):
             if model_choice == "Llama":
-                response = generate_llama2_response(prompt)
+                use_chat_format = True
+                response = generate_llama2_response(prompt, use_chat_format)
             else:
                 client = OpenAI(api_key=st.session_state.OPENAI_API_KEY)
                 response = generate_chatgpt_response(prompt, client)
