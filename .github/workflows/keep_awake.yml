@@ -1,0 +1,26 @@
+name: Keep Streamlit Awake
+
+on:
+  schedule:
+    - cron: '0 */10 * * *' # every 10 hours
+  workflow_dispatch: # allows manual trigger
+
+jobs:
+  keep-awake:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repo
+        uses: actions/checkout@v3
+
+      - name: Run keep-awake script
+        run: |
+          chmod +x .github/scripts/update_timestamp.sh
+          .github/scripts/update_timestamp.sh
+
+      - name: Commit and push
+        run: |
+          git config --global user.name 'github-actions'
+          git config --global user.email 'github-actions@users.noreply.github.com'
+          git add keep_awake.log
+          git commit -m "Keep awake ping $(date)" || echo "No changes to commit"
+          git push
